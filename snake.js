@@ -1,6 +1,6 @@
 var cvs=document.querySelector('canvas');
 cvs.width=window.innerWidth-50-(window.innerWidth-50)%25;
-cvs.height=window.innerHeight-30-(window.innerHeight-30)%25;
+cvs.height=window.innerHeight-50-(window.innerHeight-50)%25;
 
 let dead = new Audio();
 let eat = new Audio();
@@ -12,7 +12,7 @@ let down = new Audio();
 dead.src = "audio/dead.mp3";
 eat.src = "audio/eat.mp3";
 up.src = "audio/up.mp3";
-right.src ="audio/right.mp3";
+right.src = "audio/right.mp3";
 left.src = "audio/left.mp3";
 down.src = "audio/down.mp3";
 
@@ -30,9 +30,14 @@ function drawSnake(x,y,k) {
 }
 
 snake=[];
-for(var i=2;i>=0;i--) {
-    snake.push({x:i,y:0})
-} 
+createsnake();
+function createsnake() {
+    snake.length=0;
+    dir="down";
+    for(var i=2;i>=0;i--) {
+        snake.push({x:i,y:0})
+    } 
+}
 
 document.addEventListener("keydown",dirControl)
 function dirControl(event) {
@@ -54,6 +59,15 @@ function drawFood(x,y) {
     ctx.strokeRect(x*snakeW,y*snakeH,snakeW,snakeH)
 }
 
+function collision(headX,headY){
+    for(let i = 1; i < snake.length; i++){
+        if(headX == snake[i].x && headY == snake[i].y){
+            return true;
+        }
+    }
+    return false;
+}
+
 function draw() {
     ctx.clearRect(0,0,cvs.width,cvs.height)
     for(var i=0;i<snake.length;i++) {
@@ -64,24 +78,31 @@ function draw() {
     drawFood(food.x,food.y)
     var headX=snake[0].x;
     var headY=snake[0].y;
-    if(headX<0 || headY<0 || headX>=(cvs.width/snakeW) || headY>=(cvs.height/snakeH)) {
+    if(headX<0 || headY<0 || headX>=(cvs.width/snakeW) || headY>=(cvs.height/snakeH) || collision(headX,headY)){
         dead.play(),
-        alert("Game Over")
+        createsnake();
+        score=0;
     }
-    if(dir=="right") {headX++;}
-    else if(dir=="left") {headX--}
-    else if(dir=="up") {headY--}
-    else if(dir=="down") {headY++}
-    if(headX==food.x && headY==food.y) {
-        food={
-            x:Math.round(Math.random()*(cvs.width/snakeW-2)+1),
-            y:Math.round(Math.random()*(cvs.height/snakeH-2)+1)
+    else {
+        if(dir=="right") {headX++;}
+        else if(dir=="left") {headX--}
+        else if(dir=="up") {headY--}
+        else if(dir=="down") {headY++}
+        if(headX==food.x && headY==food.y) {
+            food={
+                x:Math.round(Math.random()*(cvs.width/snakeW-2)+1),
+                y:Math.round(Math.random()*(cvs.height/snakeH-2)+1)
+            }
+            score++;
+            eat.play();
         }
-        eat.play();
+        else {
+            snake.pop();
+        }
+        var newhead={x:headX,y:headY}
+        snake.unshift(newhead);
     }
-    else {snake.pop();}
-    var newhead={x:headX,y:headY}
-    snake.unshift(newhead);
+    document.getElementById("s").innerHTML=score;
 }
 
-setInterval(draw,80)
+setInterval(draw,100)
